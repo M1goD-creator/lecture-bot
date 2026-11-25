@@ -1,0 +1,35 @@
+[Unit]
+Description=Lecture bot (Teams in Chromium -> Telegram)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=app
+Group=app
+WorkingDirectory=/srv/lecture-bot
+# schedule.txt times are George's local time
+Environment=TZ=Europe/Belgrade
+Environment=PYTHONUNBUFFERED=1
+Environment=TEAMS_BACKEND=web
+# PulseAudio, the Whisper model cache and Chromium live inside /srv/lecture-bot
+Environment=HOME=/srv/lecture-bot/.home
+Environment=XDG_RUNTIME_DIR=/srv/lecture-bot/.run
+Environment=PLAYWRIGHT_BROWSERS_PATH=/srv/lecture-bot/.browsers
+# Teams rejects headless Chromium, so it gets a virtual screen
+ExecStart=/usr/bin/xvfb-run -a -s "-screen 0 1600x900x24 -nolisten tcp" /srv/lecture-bot/.venv/bin/python bot.py
+Restart=always
+RestartSec=10
+# /shutdown in Telegram exits with 75: stay off until started again from the hub
+RestartPreventExitStatus=75
+SuccessExitStatus=75
+# On stop the bot still sends the last summary
+TimeoutStopSec=180
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+# lectures/, schedule.txt (edited from the hub), teams-state.json, stop.request, .home, .run
+ReadWritePaths=/srv/lecture-bot
+
+[Install]
+WantedBy=multi-user.target

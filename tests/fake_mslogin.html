@@ -1,0 +1,41 @@
+<!doctype html>
+<!-- Offline stand-in for the Microsoft sign-in pages used by tests/test_autologin.py.
+     ?mode=ok|mfa  — what happens after a correct password ("secret-test-pw"). -->
+<html><head><meta charset="utf-8"><title>Sign in to your account</title></head>
+<body><div id="app"></div>
+<script>
+const q = new URLSearchParams(location.search);
+const mode = q.get("mode") || "ok", step = q.get("step") || "teams";
+const go = s => { q.set("step", s); location.search = q.toString(); };
+const app = document.getElementById("app");
+const btn = (label, fn) => { const b = document.createElement("input"); b.type = "submit"; b.id = "idSIButton9";
+  b.value = label; b.onclick = e => { e.preventDefault(); fn(); }; app.append(b); };
+if (step === "teams") {
+  app.innerHTML = "<p>We need you to sign in again. This could be a request from your IT department.</p>";
+  const b = document.createElement("button"); b.textContent = "Sign in"; b.onclick = () => go("email"); app.append(b);
+} else if (step === "email") {
+  app.innerHTML = '<p>Sign in</p><input type="email" name="loginfmt">';
+  btn("Next", () => { if (document.querySelector("input").value.includes("@")) go("password"); });
+} else if (step === "password" || step === "badpw") {
+  app.innerHTML = (step === "badpw" ? '<div id="passwordError">Your account or password is incorrect.</div>' : "")
+    + '<p>Enter password</p><input type="password" name="passwd">';
+  btn("Sign in", () => {
+    const ok = document.querySelector("input").value === "secret-test-pw";
+    go(!ok ? "badpw" : mode === "mfa" ? "mfa" : mode.startsWith("nudge") ? "nudge" : "kmsi");
+  });
+} else if (step === "nudge") {
+  app.innerHTML = "<p>Let's keep your account secure</p><p>We'll help you set up another way to verify it's you.</p>";
+  btn("Next", () => go("setup"));
+} else if (step === "setup") {
+  app.innerHTML = "<h2>Microsoft Authenticator</h2><p>Start by getting the app</p>"
+    + (mode === "nudge" ? '<a href="#" id="skip">Skip setup</a>' : "");
+  const s = document.getElementById("skip"); if (s) s.onclick = e => { e.preventDefault(); go("kmsi"); };
+} else if (step === "mfa") {
+  app.innerHTML = "<p>Approve sign in request</p><p>Open your Authenticator app and enter the number shown.</p>";
+} else if (step === "kmsi") {
+  app.innerHTML = '<p>Stay signed in?</p><label><input type="checkbox" id="KmsiCheckboxField"> Don\'t show this again</label>';
+  btn("Yes", () => { if (document.getElementById("KmsiCheckboxField").checked) go("home"); });
+} else if (step === "home") {
+  app.innerHTML = "<p>Activity</p><p>Chat</p><p>Teams</p><p>Calendar</p>";
+}
+</script></body></html>

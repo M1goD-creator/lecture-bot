@@ -1,0 +1,25 @@
+<!doctype html><html><body><div id="app"></div><script>
+let step = 'launcher', lobbyTicks = 0;
+const mic = {on:true}, cam = {on:true};
+function render(){
+  const a = document.getElementById('app');
+  if (step==='launcher') a.innerHTML = '<h1>How do you want to join your Teams meeting?</h1><button id=web>Continue on this browser</button><button>Open your Teams app</button>';
+  if (step==='prejoin') a.innerHTML = '<input id=name placeholder="Type your name"><div role=switch aria-label="Microphone" id=mic aria-checked="'+mic.on+'" tabindex=0>mic</div><div role=switch aria-label="Camera" id=cam aria-checked="'+cam.on+'" tabindex=0>cam</div><button id=join disabled>Join now</button>';
+  if (step==='lobby') a.innerHTML = '<p>Hi, '+window.who+'. Someone in the meeting should let you in soon</p>';
+  if (step==='call') a.innerHTML = '<div>Lecture slide</div><button id=leave aria-label="Leave (Ctrl+Shift+H)">Leave</button>';
+  if (step==='ended') a.innerHTML = '<p>You left the meeting</p><button>Rejoin</button>';
+  wire();
+}
+function wire(){
+  const q = s => document.querySelector(s);
+  if (q('#web')) q('#web').onclick = () => { step='prejoin'; render(); };
+  if (q('#name')) q('#name').oninput = e => { q('#join').disabled = !e.target.value; };
+  if (q('#mic')) q('#mic').onclick = () => { mic.on=!mic.on; q('#mic').setAttribute('aria-checked', mic.on); };
+  if (q('#cam')) q('#cam').onclick = () => { cam.on=!cam.on; q('#cam').setAttribute('aria-checked', cam.on); };
+  if (q('#join')) q('#join').onclick = () => { window.who=q('#name').value; window.joinedMuted = !mic.on && !cam.on; step='lobby'; render();
+     setTimeout(()=>{ step='call'; render(); }, 2500); };
+  if (q('#leave')) q('#leave').onclick = () => { step='ended'; render(); };
+}
+window.dropCall = () => { step='ended'; render(); };
+render();
+</script></body></html>

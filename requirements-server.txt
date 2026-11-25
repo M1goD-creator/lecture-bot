@@ -1,0 +1,10 @@
+# Linux server (TEAMS_BACKEND=web). The Windows version also uses SoundCard, mss and pywinauto.
+requests==2.34.2
+python-dotenv==1.2.4
+faster-whisper==1.2.1
+numpy==2.5.3
+pillow==12.3.0
+icalendar==7.3.0
+recurring-ical-events==3.8.2
+playwright==1.64.1
+anthropic==1.12.1
